@@ -1,10 +1,9 @@
 import * as esprima from 'esprima';
-import { parse } from 'url';
 
 var mainTable = [];
-var callFromFunc = false;
+var callFromFunc = 0;
 var elseifTrue = false;
-var typeState = "";
+var typeState = '';
 
 const parseCode = (codeToParse) => {
     return esprima.parseScript(codeToParse, {loc:true});
@@ -35,7 +34,7 @@ const statmentType ={
     'NewExpression' : parseNewExpression,
     'ObjectExpression' : parseObjectExpression,
     'ArrayExpression' : parseArrayExpression,
-}
+};
 
 
 const parseJSon=(parseObj)=>{
@@ -53,28 +52,26 @@ const parseJSon=(parseObj)=>{
     }
     else
         return mainTable;
-}
+};
 
-function parsefunctionDeclaration(parseObj ){
-    callFromFunc = true;
+function parsefunctionDeclaration(parseObj){
+    callFromFunc = 1;
     mainTable.push( {
-            'Line' : parseObj.loc.start.line,
-            'Type' : parseObj.type,
-            'Name' : statmentType[parseObj.id.type](parseObj.id),
-            'Condition' : '',
-            'Value': ''
-        } );
-    callFromFunc = false;
+        'Line':parseObj.loc.start.line,
+        'Type' : parseObj.type,
+        'Name' : statmentType[parseObj.id.type](parseObj.id),
+        'Condition' : '',
+        'Value': ''} );
+    callFromFunc = 0;
     for (var i=0;i<parseObj.params.length;i++) {
-        callFromFunc = true;
+        callFromFunc = 1;
         mainTable.push( {
-                'Line' : parseObj.params[i].loc.start.line,
-                'Type' : parseObj.params[i].type,
-                'Name' : ""+ statmentType[parseObj.params[i].type](parseObj.params[i]),
-                'Condition' : '',
-                'Value': '',
-            } );
-        callFromFunc = false; }
+            'Line' : parseObj.params[i].loc.start.line,
+            'Type' : parseObj.params[i].type,
+            'Name' : ''+ statmentType[parseObj.params[i].type](parseObj.params[i]),
+            'Condition' : '',
+            'Value': '',    } );
+        callFromFunc = 0; }
     parseJSon(parseObj.body);}
 
 function parseVariableDeclaration(parseObj){
@@ -88,48 +85,45 @@ function parseExpressionStatement(parseObj){
 }
 
 function parseAssignmentExpression(parseObj){
-    callFromFunc = true;
+    callFromFunc = 1;
     mainTable.push(
         {
             'Line' : parseObj.loc.start.line,
             'Type' : parseObj.type,
-            'Name' :  ""+ statmentType[parseObj.left.type](parseObj.left),
+            'Name' :  ''+ statmentType[parseObj.left.type](parseObj.left),
             'Condition' : '',
-            'Value': ""+ statmentType[parseObj.right.type](parseObj.right),
+            'Value': ''+ statmentType[parseObj.right.type](parseObj.right),
         }
     );
-    callFromFunc = false;
+    callFromFunc = 0;
 }
 
 function parseWhileStatement(parseObj){
-    callFromFunc = true;
-    var test = parseObj.test;
+    callFromFunc = 1;
+    //var test = parseObj.test;
     mainTable.push(
         {
             'Line' : parseObj.loc.start.line,
             'Type' : parseObj.type,
             'Name' : '',
-            'Condition' : ""+ statmentType[parseObj.test.type](parseObj.test),
+            'Condition' : ''+ statmentType[parseObj.test.type](parseObj.test),
             'Value': '',
         }
     );
-    callFromFunc = false;
+    callFromFunc = 0;
     parseJSon(parseObj.body);
 }
 
-function forInit(parseObj)
-{
+function forInit(parseObj){
     if (parseObj!=undefined){
-        if (parseObj.type=="AssignmentExpression")
-        {
+        if (parseObj.type=='AssignmentExpression')
             return statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+ statmentType[parseObj.right.type](parseObj.right);
-        }
-        else if (parseObj.type=="VariableDeclaration")
+        else if (parseObj.type=='VariableDeclaration')
         {
-            var forInitVal=parseObj.kind+" ";
+            var forInitVal=parseObj.kind+' ';
             for (var i=0;i<parseObj.declarations.length;i++)
             {
-                forInitVal=forInitVal+statmentType[parseObj.declarations[i].id.type](parseObj.declarations[i].id)+"="+statmentType[parseObj.declarations[i].init.type](parseObj.declarations[i].init);
+                forInitVal=forInitVal+statmentType[parseObj.declarations[i].id.type](parseObj.declarations[i].id)+'='+statmentType[parseObj.declarations[i].init.type](parseObj.declarations[i].init);
             }
             return forInitVal;
         }
@@ -141,22 +135,22 @@ function forInit(parseObj)
 }
 
 function parseForStatement(parseObj){
-    callFromFunc = true;
+    callFromFunc = 1;
     mainTable.push(
         {
             'Line' : parseObj.loc.start.line,
             'Type' : parseObj.type,
             'Name' : '',
-            'Condition' : "(" +forInit(parseObj.init)+";"+statmentType[parseObj.test.type](parseObj.test)+";"+statmentType[parseObj.update.type](parseObj.update)+")",
+            'Condition' : '(' +forInit(parseObj.init)+';'+statmentType[parseObj.test.type](parseObj.test)+';'+statmentType[parseObj.update.type](parseObj.update)+')',
             'Value' : ''
         }
     );
-    callFromFunc = false;
+    callFromFunc = 0;
     parseJSon(parseObj.body);
 }
 
 function parseReturnStatement(parseObj){
-    callFromFunc = true;
+    callFromFunc = 1;
     mainTable.push(
         {
             'Line' : parseObj.loc.start.line,
@@ -166,37 +160,33 @@ function parseReturnStatement(parseObj){
             'Value': statmentType[parseObj.argument.type](parseObj.argument)
         }
     );
-    callFromFunc = false;
+    callFromFunc = 0;
 }
 
 function parseIfStatement(parseObj){
-    assignType(parseObj);
-    callFromFunc = true;
+    assignType();
+    callFromFunc = 1;
     mainTable.push( {
-            'Line' : parseObj.loc.start.line,
-            'Type' : typeState,
-            'Name' :  '',
-            'Condition' :  ""+ statmentType[parseObj.test.type](parseObj.test),
-            'Value':''
-    } );   
-    callFromFunc = false;
+        'Line' : parseObj.loc.start.line,
+        'Type' : typeState,
+        'Name' :  '',
+        'Condition' :  ''+ statmentType[parseObj.test.type](parseObj.test),
+        'Value':''} );   
+    callFromFunc = 0;
     parseJSon(parseObj.consequent);
     if (parseObj.alternate!=null){
         if (parseObj.alternate.type=='IfStatement'){
             elseifTrue = true;
             parseJSon(parseObj.alternate);
-            elseifTrue=false;
-        }
+            elseifTrue=false;}
         else// if (parseObj.alternate.type!=undefined)
-            elseHandler(parseObj)
-    }
+            elseHandler(parseObj);}
     else
-        elseifTrue=false;
-    };
+        elseifTrue=false;}
 
 function elseHandler(parseObj)
 {
-    callFromFunc = true;
+    callFromFunc = 1;
     mainTable.push(
         {
             'Line' : parseObj.alternate.loc.start.line,
@@ -206,22 +196,21 @@ function elseHandler(parseObj)
             'Value':''
         }
     );
-    callFromFunc = false;
+    callFromFunc = 0;
     parseJSon(parseObj.alternate);  
 }
 
-function assignType(parseObj)
-{
-        if (elseifTrue == true)
-            typeState = 'ElseIfStatement';
-        else
-            typeState = 'IfStatemenet';
+function assignType(){
+    if (elseifTrue == true)
+        typeState = 'ElseIfStatement';
+    else
+        typeState = 'IfStatemenet';
 }
 
 function parseIdentifier(parseObj){
-    if (callFromFunc == false)
+    if (callFromFunc == 0)
     {
-        callFromFunc = true;
+        callFromFunc = 1;
         mainTable.push(
             {
                 'Line' : parseObj.loc.start.line,
@@ -231,16 +220,16 @@ function parseIdentifier(parseObj){
                 'Value':''
             }
         );
-        callFromFunc = false;
+        callFromFunc = 0;
     }
     else
         return parseObj.name;
 }
 
 function parseLiteral(parseObj){
-    if (callFromFunc == false)
+    if (callFromFunc == 0)
     {
-        callFromFunc = true;
+        callFromFunc = 1;
         mainTable.push(
             {
                 'Line' : parseObj.loc.start.line,
@@ -250,55 +239,55 @@ function parseLiteral(parseObj){
                 'Value':''
             }
         );
-        callFromFunc = false;
+        callFromFunc = 0;
     }
     else
         return parseObj.value;
 }
 
 function parseBinaryExpression(parseObj){
-    if (callFromFunc == false)
+    if (callFromFunc == 0)
     {
-        callFromFunc = true;
+        callFromFunc = 1;
         mainTable.push(
             {
                 'Line' : parseObj.loc.start.line,
                 'Type' : parseObj.type,
-                'Name' :  "("+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+")",
+                'Name' :  '('+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+')',
                 'Condition' : '',
                 'Value':''
             }
         );
-        callFromFunc = false;
+        callFromFunc = 0;
     }
     else
-        return "("+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+")";
+        return '('+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+')';
 }
 
 function parseVariableDeclarator(parseObj){
-    var valDec = "";
+    var valDec = '';
     //if (parseObj.id.length==undefined){
-        callFromFunc = true;
-        if (parseObj.init==null)
-            valDec='null';
-        else
-            valDec=statmentType[parseObj.init.type](parseObj.init);
-        mainTable.push(
-            {
-                'Line' : parseObj.loc.start.line,
-                'Type' : parseObj.type,
-                'Name' :  statmentType[parseObj.id.type](parseObj.id),
-                'Condition' : '',
-                'Value':valDec
-            });
-        callFromFunc = false;
-   // }
+    callFromFunc = 1;
+    if (parseObj.init==null)
+        valDec='null';
+    else
+        valDec=statmentType[parseObj.init.type](parseObj.init);
+    mainTable.push(
+        {
+            'Line' : parseObj.loc.start.line,
+            'Type' : parseObj.type,
+            'Name' :  statmentType[parseObj.id.type](parseObj.id),
+            'Condition' : '',
+            'Value':valDec
+        });
+    callFromFunc = 0;
+    // }
 }
 
 function parseUnaryExpression(parseObj){
-    if (callFromFunc == false)
+    if (callFromFunc == 0)
     {
-        callFromFunc = true;
+        callFromFunc = 1;
         mainTable.push(
             {
                 'Line' : parseObj.loc.start.line,
@@ -308,29 +297,29 @@ function parseUnaryExpression(parseObj){
                 'Value':''
             }
         );
-        callFromFunc = false;
+        callFromFunc = 0;
     }
     else
         return statmentType[parseObj.argument.type](parseObj.argument);
 }
 
 function parseMemberExpression(parseObj){
-    if (callFromFunc == false)
+    if (callFromFunc == 0)
     {
-        callFromFunc = true;
+        callFromFunc = 1;
         mainTable.push(
             {
                 'Line' : parseObj.loc.start.line,
                 'Type' : parseObj.type,
-                'Name' :  statmentType[parseObj.object.type](parseObj.object)+"["+statmentType[parseObj.property.type](parseObj.property)+"]",
+                'Name' :  statmentType[parseObj.object.type](parseObj.object)+'['+statmentType[parseObj.property.type](parseObj.property)+']',
                 'Condition' : '',
                 'Value':''
             }
         );
-        callFromFunc = false;
+        callFromFunc = 0;
     }
     else
-        return statmentType[parseObj.object.type](parseObj.object)+"["+statmentType[parseObj.property.type](parseObj.property)+"]";
+        return statmentType[parseObj.object.type](parseObj.object)+'['+statmentType[parseObj.property.type](parseObj.property)+']';
 }
 
 function getUpdateVar(parseObj)
@@ -342,93 +331,92 @@ function getUpdateVar(parseObj)
 }
 
 function parseUpdateExpression(parseObj){
-    if (callFromFunc == false){
-        callFromFunc = true;
+    if (callFromFunc == 0){
+        callFromFunc = 1;
         mainTable.push(  {
-                'Line' : parseObj.loc.start.line,
-                'Type' : parseObj.type,
-                'Name' : getUpdateVar(parseObj),
-                'Condition' : '',
-                'Value':''
-            } );
-        callFromFunc = false;}
+            'Line' : parseObj.loc.start.line,
+            'Type' : parseObj.type,
+            'Name' : getUpdateVar(parseObj),
+            'Condition' : '',
+            'Value':''
+        } );
+        callFromFunc = 0;}
     else
         return getUpdateVar(parseObj);
 }
 
 function parseLogicalExpression(parseObj){
-    if (callFromFunc == false){
-        callFromFunc = true;
+    if (callFromFunc == 0){
+        callFromFunc = 1;
         mainTable.push(
             {
                 'Line' : parseObj.loc.start.line,
                 'Type' : parseObj.type,
-                'Name' : "("+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+")",
+                'Name' : '('+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+')',
                 'Condition' : '',
                 'Value':''
             }
         );
-        callFromFunc = false;}
+        callFromFunc = 0;}
     else
-        return "("+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+")";
+        return '('+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+')';
 }
 
 function parseCallExpression(parseObj){
-    var funcArgs="";
+    var funcArgs='';
     for(var i=0;i<parseObj.arguments.length;i++){
         if (i==0)
             funcArgs=funcArgs+statmentType[parseObj.arguments[i].type](parseObj.arguments[i]);
         else
-            funcArgs=funcArgs+","+statmentType[parseObj.arguments[i].type](parseObj.arguments[i]);
+            funcArgs=funcArgs+','+statmentType[parseObj.arguments[i].type](parseObj.arguments[i]);
     }
-    if (callFromFunc == false) {
-        callFromFunc = true;
+    if (callFromFunc == 0) {
+        callFromFunc = 1;
         mainTable.push({
-                'Line' : parseObj.loc.start.line,
-                'Type' : parseObj.type,
-                'Name' :  statmentType[parseObj.callee.type](parseObj.callee)+"("+funcArgs+")",
-                'Condition' : '',
-                'Value':'' });
-        callFromFunc = false;
-    }
+            'Line' : parseObj.loc.start.line,
+            'Type' : parseObj.type,
+            'Name' :  statmentType[parseObj.callee.type](parseObj.callee)+'('+funcArgs+')',
+            'Condition' : '',
+            'Value':'' });
+        callFromFunc = 0; }
     else
-        return statmentType[parseObj.callee.type](parseObj.callee)+"("+funcArgs+")";
+        return statmentType[parseObj.callee.type](parseObj.callee)+'('+funcArgs+')';
 }
 
 function parseArrayExpression(parseObj){
-    var arrArgs="";
+    var arrArgs='';
     for(var i=0;i<parseObj.elements.length;i++)
     {
         if (i==0)
             arrArgs=arrArgs+statmentType[parseObj.elements[i].type](parseObj.elements[i]);
         else
-            arrArgs=arrArgs+","+statmentType[parseObj.elements[i].type](parseObj.elements[i]);
+            arrArgs=arrArgs+','+statmentType[parseObj.elements[i].type](parseObj.elements[i]);
     }
-    return "["+arrArgs+"]";
+    return '['+arrArgs+']';
 }
 
 function parseObjectExpression(parseObj){
-    var objArgs="";
+    var objArgs='';
     for(var i=0;i<parseObj.properties.length;i++)
     {
         if (i==0)
             objArgs=objArgs+statmentType[parseObj.properties[i].key.type](parseObj.properties[i].key);
         else
-            objArgs=objArgs+","+statmentType[parseObj.properties[i].key.type](parseObj.properties[i].key);
+            objArgs=objArgs+','+statmentType[parseObj.properties[i].key.type](parseObj.properties[i].key);
     }
-    return "{"+objArgs+"}";
+    return '{'+objArgs+'}';
 }
 
 function parseNewExpression(parseObj){
-    var funcArgs="";
+    var funcArgs='';
     for(var i=0;i<parseObj.arguments.length;i++)
     {
         if (i==0)
             funcArgs=funcArgs+statmentType[parseObj.arguments[i].type](parseObj.arguments[i]);
         else
-            funcArgs=funcArgs+","+statmentType[parseObj.arguments[i].type](parseObj.arguments[i]);
+            funcArgs=funcArgs+','+statmentType[parseObj.arguments[i].type](parseObj.arguments[i]);
     }
-    return "new "+statmentType[parseObj.callee.type](parseObj.callee)+"("+funcArgs+")";
+    return 'new '+statmentType[parseObj.callee.type](parseObj.callee)+'('+funcArgs+')';
 }
 
 export {parseCode};
