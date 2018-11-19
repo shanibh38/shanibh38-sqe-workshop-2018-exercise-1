@@ -24,7 +24,6 @@ const statmentType ={
     'ExpressionStatement' : parseExpressionStatement,
     'WhileStatement' : parseWhileStatement,
     'ForStatement' : parseForStatement,
-    'BlockStatement' : parseBlockStatement,
     'ReturnStatement' : parseReturnStatement, 
     'IfStatement' : parseIfStatement,
     'BinaryExpression' : parseBinaryExpression, 
@@ -50,8 +49,10 @@ const parseJSon=(parseObj)=>{
                 statmentType[parseObj.body[i].type](parseObj.body[i]);
             }
         }
+        return mainTable;
     }
-    return mainTable;
+    else
+        return mainTable;
 }
 
 function parsefunctionDeclaration(parseObj ){
@@ -118,20 +119,25 @@ function parseWhileStatement(parseObj){
 
 function forInit(parseObj)
 {
-    if (parseObj.type=="AssignmentExpression")
-    {
-        return statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+ statmentType[parseObj.right.type](parseObj.right);
-    }
-    else if (parseObj.type=="VariableDeclaration")
-    {
-        var forInitVal=parseObj.kind+" ";
-        for (var i=0;i<parseObj.declarations.length;i++)
+    if (parseObj!=undefined){
+        if (parseObj.type=="AssignmentExpression")
         {
-            forInitVal=forInitVal+statmentType[parseObj.declarations[i].id.type](parseObj.declarations[i].id)+"="+statmentType[parseObj.declarations[i].init.type](parseObj.declarations[i].init);
+            return statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+ statmentType[parseObj.right.type](parseObj.right);
         }
-        return forInitVal;
+        else if (parseObj.type=="VariableDeclaration")
+        {
+            var forInitVal=parseObj.kind+" ";
+            for (var i=0;i<parseObj.declarations.length;i++)
+            {
+                forInitVal=forInitVal+statmentType[parseObj.declarations[i].id.type](parseObj.declarations[i].id)+"="+statmentType[parseObj.declarations[i].init.type](parseObj.declarations[i].init);
+            }
+            return forInitVal;
+        }
+        else
+            return statmentType[parseObj.type](parseObj);
     }
-    return '';
+    else
+        return '';
 }
 
 function parseForStatement(parseObj){
@@ -146,10 +152,6 @@ function parseForStatement(parseObj){
         }
     );
     callFromFunc = false;
-    parseJSon(parseObj.body);
-}
-
-function parseBlockStatement(parseObj){
     parseJSon(parseObj.body);
 }
 
@@ -185,9 +187,12 @@ function parseIfStatement(parseObj){
             parseJSon(parseObj.alternate);
             elseifTrue=false;
         }
-        else if (parseObj.alternate.type!=undefined)
+        else// if (parseObj.alternate.type!=undefined)
             elseHandler(parseObj)
-    }}
+    }
+    else
+        elseifTrue=false;
+    };
 
 function elseHandler(parseObj)
 {
@@ -207,12 +212,10 @@ function elseHandler(parseObj)
 
 function assignType(parseObj)
 {
-    if (parseObj.type=='IfStatement'){
         if (elseifTrue == true)
             typeState = 'ElseIfStatement';
         else
             typeState = 'IfStatemenet';
-    }
 }
 
 function parseIdentifier(parseObj){
@@ -272,17 +275,14 @@ function parseBinaryExpression(parseObj){
         return "("+statmentType[parseObj.left.type](parseObj.left)+parseObj.operator+statmentType[parseObj.right.type](parseObj.right)+")";
 }
 
-
 function parseVariableDeclarator(parseObj){
     var valDec = "";
-    if (parseObj.id.length==undefined)
-    {
+    //if (parseObj.id.length==undefined){
         callFromFunc = true;
         if (parseObj.init==null)
             valDec='null';
         else
             valDec=statmentType[parseObj.init.type](parseObj.init);
-
         mainTable.push(
             {
                 'Line' : parseObj.loc.start.line,
@@ -290,27 +290,9 @@ function parseVariableDeclarator(parseObj){
                 'Name' :  statmentType[parseObj.id.type](parseObj.id),
                 'Condition' : '',
                 'Value':valDec
-            }
-        );
+            });
         callFromFunc = false;
-    }
-    /*
-    else {
-console.log("we hereeeeeeeeeeeee");
-        for (var i=0;i<parseObj.id.length;i++){
-            mainTable.push(
-                {
-                    'Line' : parseObj.loc.start.line,
-                    'Type' : parseObj.type,
-                    'Name' :  statmentType[parseObj.id[i].type](parseObj.id[i]),
-                    'Condition' : '',
-                    'Value':''
-                }
-            );
-        }
-    }
-    //parseJSon(parseObj.body);
-    */
+   // }
 }
 
 function parseUnaryExpression(parseObj){
@@ -418,7 +400,7 @@ function parseArrayExpression(parseObj){
     for(var i=0;i<parseObj.elements.length;i++)
     {
         if (i==0)
-            funcArgs=funcArgs+statmentType[parseObj.elements[i].type](parseObj.elements[i]);
+            arrArgs=arrArgs+statmentType[parseObj.elements[i].type](parseObj.elements[i]);
         else
             arrArgs=arrArgs+","+statmentType[parseObj.elements[i].type](parseObj.elements[i]);
     }
@@ -429,7 +411,10 @@ function parseObjectExpression(parseObj){
     var objArgs="";
     for(var i=0;i<parseObj.properties.length;i++)
     {
-        objArgs=objArgs+statmentType[parseObj.properties[i].type](parseObj.properties[i])
+        if (i==0)
+            objArgs=objArgs+statmentType[parseObj.properties[i].key.type](parseObj.properties[i].key);
+        else
+            objArgs=objArgs+","+statmentType[parseObj.properties[i].key.type](parseObj.properties[i].key);
     }
     return "{"+objArgs+"}";
 }
