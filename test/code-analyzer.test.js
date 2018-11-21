@@ -157,6 +157,14 @@ describe('The javascript parser', () => {
         let expected = JSON.stringify([{"Line":1,"Type":"IfStatemenet","Name":"","Condition":"(x<2)","Value":""}]);
         assert.equal(actual,expected);
     });
+
+    it('is parsing an += Assignemnt function correctly', () => {
+        clearTable();
+        let parsedCode = parseCode("if (x>3){x+=a;}");
+        let actual = JSON.stringify(parseJSon(parsedCode.body[0]));
+        let expected = JSON.stringify([{"Line":1,"Type":"IfStatemenet","Name":"","Condition":"(x>3)","Value":""},{"Line":1,"Type":"AssignmentExpression","Name":"x","Condition":"","Value":"+=a"}]);
+        assert.equal(actual,expected);
+    });
     
     it('is parsing an WhileStatement function correctly', () => {
         clearTable();

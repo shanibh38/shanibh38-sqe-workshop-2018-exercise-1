@@ -72,7 +72,8 @@ function parsefunctionDeclaration(parseObj){
             'Condition' : '',
             'Value': '',    } );
         callFromFunc = 0; }
-    parseJSon(parseObj.body);}
+    parseJSon(parseObj.body);
+}
 
 function parseVariableDeclaration(parseObj){
     for (var i=0;i<parseObj.declarations.length;i++) {
@@ -85,6 +86,11 @@ function parseExpressionStatement(parseObj){
 }
 
 function parseAssignmentExpression(parseObj){
+    var operatorVar = '';
+    if (parseObj.operator!='=')
+        operatorVar = parseObj.operator;
+    else
+        operatorVar = '';
     callFromFunc = 1;
     mainTable.push(
         {
@@ -92,7 +98,7 @@ function parseAssignmentExpression(parseObj){
             'Type' : parseObj.type,
             'Name' :  ''+ statmentType[parseObj.left.type](parseObj.left),
             'Condition' : '',
-            'Value': ''+ statmentType[parseObj.right.type](parseObj.right),
+            'Value': ''+  operatorVar+statmentType[parseObj.right.type](parseObj.right),
         }
     );
     callFromFunc = 0;
@@ -100,7 +106,6 @@ function parseAssignmentExpression(parseObj){
 
 function parseWhileStatement(parseObj){
     callFromFunc = 1;
-    //var test = parseObj.test;
     mainTable.push(
         {
             'Line' : parseObj.loc.start.line,
@@ -266,7 +271,6 @@ function parseBinaryExpression(parseObj){
 
 function parseVariableDeclarator(parseObj){
     var valDec = '';
-    //if (parseObj.id.length==undefined){
     callFromFunc = 1;
     if (parseObj.init==null)
         valDec='null';
@@ -281,8 +285,8 @@ function parseVariableDeclarator(parseObj){
             'Value':valDec
         });
     callFromFunc = 0;
-    // }
 }
+
 
 function parseUnaryExpression(parseObj){
     if (callFromFunc == 0)

@@ -7,7 +7,6 @@ $(document).ready(function () {
         let codeToParse = $('#codePlaceholder').val();
         let parsedCode = parseCode(codeToParse);
         let globalTable = parseJSon(parsedCode.body[0]);
-        //var x= ( JSON.stringify(globalTable));
         let table = makeTable(globalTable);
         document.getElementById('showTable').innerHTML = table;
         $('#parsedCode').val(JSON.stringify(parsedCode, null, 2));
