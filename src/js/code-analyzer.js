@@ -34,6 +34,10 @@ const statmentType ={
     'NewExpression' : parseNewExpression,
     'ObjectExpression' : parseObjectExpression,
     'ArrayExpression' : parseArrayExpression,
+    'DoWhileStatement' : parseDoWhileStatement,
+    'SwitchStatement' : parseSwitchStatement,
+    'SwitchCase' : parseSwitchCase,
+    'BreakStatement' : parseBreakStatement,
 };
 
 
@@ -421,6 +425,65 @@ function parseNewExpression(parseObj){
             funcArgs=funcArgs+','+statmentType[parseObj.arguments[i].type](parseObj.arguments[i]);
     }
     return 'new '+statmentType[parseObj.callee.type](parseObj.callee)+'('+funcArgs+')';
+}
+
+function parseSwitchStatement(parseObj){
+    mainTable.push({
+        'Line' : parseObj.loc.start.line,
+        'Type' : parseObj.type,
+        'Name' :  '',
+        'Condition' : '',
+        'Value':'' }
+    );
+    for(var i=0;i<parseObj.cases.length;i++)
+    {
+        statmentType[parseObj.cases[i].type](parseObj.cases[i]);
+    }
+}
+
+function parseSwitchCase(parseObj){
+    var testVar = '';
+    callFromFunc = 1;
+    if (parseObj.test==null)
+        testVar = 'default';
+    else
+        testVar = statmentType[parseObj.test.type](parseObj.test);
+    mainTable.push({
+        'Line' : parseObj.loc.start.line,
+        'Type' : parseObj.type,
+        'Name' :  '',
+        'Condition' : testVar,
+        'Value':'' }
+    );
+    callFromFunc = 0;
+    for(var i=0;i<parseObj.consequent.length;i++)
+    {
+        statmentType[parseObj.consequent[i].type](parseObj.consequent[i]);
+    }
+}
+function parseBreakStatement(parseObj){
+    mainTable.push({
+        'Line' : parseObj.loc.start.line,
+        'Type' : parseObj.type,
+        'Name' :  '',
+        'Condition' : '',
+        'Value':'' }
+    );
+}
+function parseDoWhileStatement(parseObj){
+    callFromFunc = 1;
+    mainTable.push({
+        'Line' : parseObj.loc.start.line,
+        'Type' : parseObj.type,
+        'Name' :  '',
+        'Condition' :  statmentType[parseObj.test.type](parseObj.test),
+        'Value':'' }
+    );
+    callFromFunc = 0;
+    for(var i=0;i<parseObj.body.body.length;i++)
+    {
+        statmentType[parseObj.body.body[i].type](parseObj.body.body[i]);
+    }
 }
 
 export {parseCode};

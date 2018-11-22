@@ -17,6 +17,22 @@ describe('The javascript parser', () => {
         let expected = JSON.stringify([{"Line":1,"Type":"VariableDeclarator","Name":"x","Condition":"","Value":"(a+(4*5))"}]);
         assert.equal(actual,expected);
     });
+    
+        it('is parsing an VariableDec&&BinaryExp function correctly', () => {
+        clearTable();
+        let parsedCode = parseCode("switch(expression) {case a:x=3;break;case b:x=2;break;default:x=3;}");
+        let actual = JSON.stringify(parseJSon(parsedCode.body[0]));
+        let expected = JSON.stringify([{"Line":1,"Type":"SwitchStatement","Name":"","Condition":"","Value":""},{"Line":1,"Type":"SwitchCase","Name":"","Condition":"a","Value":""},{"Line":1,"Type":"AssignmentExpression","Name":"x","Condition":"","Value":"3"},{"Line":1,"Type":"BreakStatement","Name":"","Condition":"","Value":""},{"Line":1,"Type":"SwitchCase","Name":"","Condition":"b","Value":""},{"Line":1,"Type":"AssignmentExpression","Name":"x","Condition":"","Value":"2"},{"Line":1,"Type":"BreakStatement","Name":"","Condition":"","Value":""},{"Line":1,"Type":"SwitchCase","Name":"","Condition":"default","Value":""},{"Line":1,"Type":"AssignmentExpression","Name":"x","Condition":"","Value":"3"}]);
+        assert.equal(actual,expected);
+    });
+        it('is parsing an VariableDec&&BinaryExp function correctly', () => {
+        clearTable();
+        let parsedCode = parseCode("do{x=2;}while(x>2);");
+        let actual = JSON.stringify(parseJSon(parsedCode.body[0]));
+        let expected = JSON.stringify([{"Line":1,"Type":"DoWhileStatement","Name":"","Condition":"(x>2)","Value":""},{"Line":1,"Type":"AssignmentExpression","Name":"x","Condition":"","Value":"2"}]);
+        assert.equal(actual,expected);
+    });
+    
     it('is parsing an For function correctly', () => {
         clearTable();
         let parsedCode = parseCode("for(var i=0;i<4 && s>23;i++){};");

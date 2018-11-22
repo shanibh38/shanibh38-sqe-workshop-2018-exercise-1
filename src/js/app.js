@@ -1,11 +1,12 @@
 import $ from 'jquery';
-import {parseCode} from './code-analyzer';
+import {parseCode, clearTable} from './code-analyzer';
 import {parseJSon} from './code-analyzer';
 
 $(document).ready(function () {
     $('#codeSubmissionButton').click(() => {
         let codeToParse = $('#codePlaceholder').val();
         let parsedCode = parseCode(codeToParse);
+        clearTable();
         let globalTable = parseJSon(parsedCode.body[0]);
         let table = makeTable(globalTable);
         document.getElementById('showTable').innerHTML = table;
